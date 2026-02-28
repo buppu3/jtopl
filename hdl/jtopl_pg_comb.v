@@ -22,6 +22,7 @@
 module jtopl_pg_comb (
     input       [ 2:0]  block,
     input       [ 9:0]  fnum,
+    input               note_sel,
     // Phase Modulation
     input       [ 2:0]  vib_cnt,
     input               vib_dep,
@@ -51,8 +52,7 @@ module jtopl_pg_comb (
 wire signed [3:0] pm_offset;
 wire        [9:0] phase_pre;
 
-wire nts = 0;
-assign keycode = { block, nts  ? fnum[9] : fnum[8] };
+assign keycode = { block, note_sel  ? fnum[9] : fnum[8] };
 
 /*  pm and pg_inc operate in parallel */ 
 jtopl_pm u_pm(

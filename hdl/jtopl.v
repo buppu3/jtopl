@@ -74,6 +74,7 @@ wire  [ 2:0]  block_I;
 wire  [ 3:0]  mul_II;
 wire  [ 9:0]  phase_IV;
 wire          pg_rst_II;
+wire          note_sel_I;
 wire          viben_I;
 wire  [ 2:0]  vib_cnt;
 // envelope configuration
@@ -161,6 +162,7 @@ jtopl_mmr #(
     .fnum_I     ( fnum_I        ),
     .block_I    ( block_I       ),
     .mul_II     ( mul_II        ),
+    .note_sel_I ( note_sel_I    ),
     // Operator
     .wavsel_I   ( wavsel_I      ),
     // Envelope Generator
@@ -267,6 +269,8 @@ jtopl_pg #(
     // Channel frequency
     .fnum_I     ( fnum_I        ),
     .block_I    ( block_I       ),
+    //
+    .note_sel_I ( note_sel_I    ),
     // Operator multiplying
     .mul_II     ( mul_II        ),
     // phase modulation from LFO (vibrato at 6.4Hz)
@@ -296,7 +300,6 @@ jtopl_eg #(
     //.FB_WIDTH(FB_WIDTH),
     //.WAVESEL_WIDTH(WAVESEL_WIDTH)
 ) u_eg(
-.slot(slot),
     .rst        ( rst           ),
     .clk        ( clk           ),
     .cenop      ( cenop         ),

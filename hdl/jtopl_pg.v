@@ -26,6 +26,8 @@ module jtopl_pg(
     // Channel frequency
     input       [ 9:0]      fnum_I,
     input       [ 2:0]      block_I,
+    //
+    input                   note_sel_I,
     // Operator multiplying
     input       [ 3:0]      mul_II,
     // phase modulation from LFO (vibrato at 6.4Hz)
@@ -110,6 +112,7 @@ jtopl_noise u_noise(
 jtopl_pg_comb u_comb(
     .block      ( block_I       ),
     .fnum       ( fnum_I        ),
+    .note_sel   ( note_sel_I    ),
     // Phase Modulation
     .vib_cnt    ( vib_cnt       ),
     .vib_dep    ( vib_dep       ),

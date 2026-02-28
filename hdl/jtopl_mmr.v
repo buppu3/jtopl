@@ -47,6 +47,7 @@ module jtopl_mmr(
     output      [ 2:0]  block_I,
     output      [ 3:0]  mul_II,
     output              viben_I,
+    output              note_sel_I,
     // Operator
     output      [WAVESEL_WIDTH-1:0] wavsel_I,
     // Envelope Generator
@@ -431,5 +432,10 @@ jtopl_reg #(
     .am_dep_I   ( am_dep        ),
     .vib_dep_I  ( vib_dep       )
 );
+
+generate
+if(MODULE_COUNT > 1) assign note_sel_I = (new_en || group < 3) ? reg_note_sel[0] : reg_note_sel[1];
+else                 assign note_sel_I = reg_note_sel[0];
+endgenerate
 
 endmodule
