@@ -1,3 +1,14 @@
+# JTOPL OPL3 対応版
+
+dual-OPL2 と OPL3 に対応する為の修正です。
+レジスタ 105h に 1 を設定する OPL3 モードになります。
+レジスタ 105h に 0 の場合は dual OPL2 モードで動作します。
+
+dual OPL2 モード動作時は chA に OPL2-0、chB に OPL2-1 の信号が出力されます。
+OPL3 モード時はレジスタの設定に従い信号を出力します。
+
+---  
+
 # JTOPL FPGA Clone of Yamaha OPL hardware
 
 (c) Jose Tejada. You can show your appreciation by supporting [Patreon](https://patreon.com/jotego) releases. 

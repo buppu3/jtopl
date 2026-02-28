@@ -24,31 +24,48 @@ module jtopl(
     input                  clk,        // CPU clock
     input                  cen,        // optional clock enable, it not needed leave as 1'b1
     input           [ 7:0] din,
-    input                  addr,
+    input           [ 1:0] addr,
     input                  cs_n,
     input                  wr_n,
     output          [ 7:0] dout,
     output                 irq_n,
     // combined output
-    output  signed  [15:0] snd,
+    output  signed  [15:0] snd_a,
+    output  signed  [15:0] snd_b,
+    output  signed  [15:0] snd_c,
+    output  signed  [15:0] snd_d,
     output                 sample
 );
 
+parameter STATUS_BITS = 5'd6;
 parameter OPL_TYPE=1;
+parameter MODULE_COUNT = 1;
+parameter SLOTS = 18;
+parameter CHANNELS = 9;
+parameter CH_WIDTH = 4;
+parameter GROUP_WIDTH = 2;
+parameter OP_WIDTH = 1;
+parameter CON_WIDTH = 1;
+parameter FB_WIDTH = 3;
+parameter WAVESEL_WIDTH = 2;
+parameter CLKDIV=2;
+parameter MONO = 0;
+parameter ACCW = 17;
 
-wire          cenop;
-wire          write;
-wire  [ 1:0]  group;
-wire  [17:0]  slot;
-wire  [ 3:0]  trem;
+wire                    cenop;
+wire                    write;
+wire  [GROUP_WIDTH-1:0] group;
+wire  [SLOTS-1:0]       slot;
+wire  [ 4:0]            trem;
 
 // Timers
-wire          flag_A, flag_B, flagen_A, flagen_B;
-wire  [ 7:0]  value_A;
-wire  [ 7:0]  value_B;
-wire          load_A, load_B;
-wire          clr_flag_A, clr_flag_B;
-wire          overflow_A;
+wire          flag_A[MODULE_COUNT-1:0], flag_B[MODULE_COUNT-1:0], flagen_A[MODULE_COUNT-1:0], flagen_B[MODULE_COUNT-1:0];
+wire  [ 7:0]  value_A[MODULE_COUNT-1:0];
+wire  [ 7:0]  value_B[MODULE_COUNT-1:0];
+wire          load_A[MODULE_COUNT-1:0], load_B[MODULE_COUNT-1:0];
+wire          clr_flag_A[MODULE_COUNT-1:0], clr_flag_B[MODULE_COUNT-1:0];
+wire          overflow_A[MODULE_COUNT-1:0];
+wire          w_irq_n[MODULE_COUNT-1:0];
 wire          zero; // Single-clock pulse at the begginig of s1_enters
 
 // Phase
@@ -75,21 +92,49 @@ wire          eg_stop;
 wire          amen_IV;
 wire  [ 5:0]  tl_IV;
 wire  [ 9:0]  eg_V;
+//
+wire          rhy_oen_I;
 // Global values
-wire          am_dep, vib_dep, rhy_en;
+wire          am_dep, vib_dep;
 // Operator
-wire  [ 2:0]  fb_I;
-wire  [ 1:0]  wavsel_I;
-wire          op, con_I, op_out, con_out;
+wire  [FB_WIDTH-1:0]      fb_I;
+wire  [WAVESEL_WIDTH-1:0] wavsel_I;
+wire  [OP_WIDTH-1:0]      op;
+wire  [CON_WIDTH-1:0]     con_I;
+wire  [ 3:0]              dac_en_I, dac_en_out;
+wire                      sum_en_out, rhy2x_out;
+wire                      hh_en_I, sd_en_I, tc_en_I;
+wire [7:0]                st[MODULE_COUNT-1:0];
+wire                      new_en;
 
-wire signed [12:0] op_result;
+wire signed [12:0]        op_result;
 
 assign          write   = !cs_n && !wr_n;
-assign          dout    = { ~irq_n, flag_A, flag_B, 5'd6 };
+assign          st[0] = { ~w_irq_n[0], flag_A[0], flag_B[0], STATUS_BITS[4:0] };
 assign          eg_stop = 0;
-assign          sample  = zero;
 
-jtopl_mmr #(.OPL_TYPE(OPL_TYPE)) u_mmr(
+generate if(MODULE_COUNT > 1) begin
+    assign st[1] = { ~w_irq_n[1], flag_A[1], flag_B[1], STATUS_BITS[4:0] };
+    assign dout  = new_en ? st[0] : st[addr[1]];
+    assign irq_n = new_en ? w_irq_n[0] : (w_irq_n[0] & w_irq_n[1]);
+end else begin
+    assign dout  = st[0];
+    assign irq_n = w_irq_n[0];
+end endgenerate
+
+jtopl_mmr #(
+    .OPL_TYPE(OPL_TYPE),
+    .MODULE_COUNT(MODULE_COUNT),
+    .SLOTS(SLOTS),
+    .CHANNELS(CHANNELS),
+    .CH_WIDTH(CH_WIDTH),
+    .GROUP_WIDTH(GROUP_WIDTH),
+    .OP_WIDTH(OP_WIDTH),
+    .CON_WIDTH(CON_WIDTH),
+    .FB_WIDTH(FB_WIDTH),
+    .WAVESEL_WIDTH(WAVESEL_WIDTH),
+    .CLKDIV(CLKDIV)
+) u_mmr(
     .rst        ( rst           ),
     .clk        ( clk           ),
     .cen        ( cen           ),  // external clock enable
@@ -101,7 +146,6 @@ jtopl_mmr #(.OPL_TYPE(OPL_TYPE)) u_mmr(
     .group      ( group         ),
     .op         ( op            ),
     .slot       ( slot          ),
-    .rhy_en     ( rhy_en        ),
     // Timers
     .value_A    ( value_A       ),
     .value_B    ( value_B       ),
@@ -136,7 +180,15 @@ jtopl_mmr #(.OPL_TYPE(OPL_TYPE)) u_mmr(
     .vib_dep    ( vib_dep       ),
     // Timbre
     .fb_I       ( fb_I          ),
-    .con_I      ( con_I         )
+    .con_I      ( con_I         ),
+    //
+    .dac_en_I   ( dac_en_I      ),
+    .rhy_oen_I  ( rhy_oen_I     ),
+    .hh_en_I    ( hh_en_I       ),
+    .sd_en_I    ( sd_en_I       ),
+    .tc_en_I    ( tc_en_I       ),
+    //
+    .new_en     ( new_en        )
 );
 
 jtopl_timers u_timers(
@@ -144,21 +196,53 @@ jtopl_timers u_timers(
     .clk        ( clk           ),
     .cenop      ( cenop         ),
     .zero       ( zero          ),
-    .value_A    ( value_A       ),
-    .value_B    ( value_B       ),
-    .load_A     ( load_A        ),
-    .load_B     ( load_B        ),
-    .flagen_A   ( flagen_A      ),
-    .flagen_B   ( flagen_B      ),
-    .clr_flag_A ( clr_flag_A    ),
-    .clr_flag_B ( clr_flag_B    ),
-    .flag_A     ( flag_A        ),
-    .flag_B     ( flag_B        ),
-    .overflow_A ( overflow_A    ),
-    .irq_n      ( irq_n         )
+    .value_A    ( value_A[0]    ),
+    .value_B    ( value_B[0]    ),
+    .load_A     ( load_A[0]     ),
+    .load_B     ( load_B[0]     ),
+    .flagen_A   ( flagen_A[0]   ),
+    .flagen_B   ( flagen_B[0]   ),
+    .clr_flag_A ( clr_flag_A[0] ),
+    .clr_flag_B ( clr_flag_B[0] ),
+    .flag_A     ( flag_A[0]     ),
+    .flag_B     ( flag_B[0]     ),
+    .overflow_A ( overflow_A[0] ),
+    .irq_n      ( w_irq_n[0]    )
 );
 
-jtopl_lfo u_lfo(
+generate if(MODULE_COUNT > 1) begin
+jtopl_timers u_timers_2 (
+    .rst        ( rst           ),
+    .clk        ( clk           ),
+    .cenop      ( cenop & ~new_en), // OPL3 モードの時はタイマー停止
+    .zero       ( zero          ),
+    .value_A    ( value_A[1]    ),
+    .value_B    ( value_B[1]    ),
+    .load_A     ( load_A[1]     ),
+    .load_B     ( load_B[1]     ),
+    .flagen_A   ( flagen_A[1]   ),
+    .flagen_B   ( flagen_B[1]   ),
+    .clr_flag_A ( clr_flag_A[1] ),
+    .clr_flag_B ( clr_flag_B[1] ),
+    .flag_A     ( flag_A[1]     ),
+    .flag_B     ( flag_B[1]     ),
+    .overflow_A ( overflow_A[1] ),
+    .irq_n      ( w_irq_n[1]    )
+);
+end
+endgenerate
+
+jtopl_lfo #(
+    .OPL_TYPE(OPL_TYPE),
+    .SLOTS(SLOTS)
+    //.CHANNELS(CHANNELS),
+    //.CH_WIDTH(CH_WIDTH),
+    //.GROUP_WIDTH(GROUP_WIDTH),
+    //.OP_WIDTH(OP_WIDTH),
+    //.CON_WIDTH(CON_WIDTH),
+    //.FB_WIDTH(FB_WIDTH),
+    //.WAVESEL_WIDTH(WAVESEL_WIDTH)
+) u_lfo(
     .rst        ( rst           ),
     .clk        ( clk           ),
     .cenop      ( cenop         ),
@@ -167,12 +251,19 @@ jtopl_lfo u_lfo(
     .trem       ( trem          )
 );
 
-jtopl_pg u_pg(
+jtopl_pg #(
+    .OPL_TYPE(OPL_TYPE),
+    .CHANNELS(CHANNELS)
+    //.CH_WIDTH(CH_WIDTH),
+    //.GROUP_WIDTH(GROUP_WIDTH),
+    //.OP_WIDTH(OP_WIDTH),
+    //.CON_WIDTH(CON_WIDTH),
+    //.FB_WIDTH(FB_WIDTH),
+    //.WAVESEL_WIDTH(WAVESEL_WIDTH)
+) u_pg(
     .rst        ( rst           ),
     .clk        ( clk           ),
     .cenop      ( cenop         ),
-    .slot       ( slot          ),
-    .rhy_en     ( rhy_en        ),
     // Channel frequency
     .fnum_I     ( fnum_I        ),
     .block_I    ( block_I       ),
@@ -184,12 +275,28 @@ jtopl_pg u_pg(
     .viben_I    ( viben_I       ),
     // phase operation
     .pg_rst_II  ( pg_rst_II     ),
+    //
+    .rhy_oen_I  ( rhy_oen_I     ),
+    .hh_en_I    ( hh_en_I       ),
+    .sd_en_I    ( sd_en_I       ),
+    .tc_en_I    ( tc_en_I       ),
     
     .keycode_II ( keycode_II    ),
     .phase_IV   ( phase_IV      )
 );
 
-jtopl_eg u_eg(
+jtopl_eg #(
+    //.OPL_TYPE(OPL_TYPE),
+    .SLOTS(SLOTS)
+    //.CHANNELS(CHANNELS),
+    //.CH_WIDTH(CH_WIDTH),
+    //.GROUP_WIDTH(GROUP_WIDTH),
+    //.OP_WIDTH(OP_WIDTH),
+    //.CON_WIDTH(CON_WIDTH),
+    //.FB_WIDTH(FB_WIDTH),
+    //.WAVESEL_WIDTH(WAVESEL_WIDTH)
+) u_eg(
+.slot(slot),
     .rst        ( rst           ),
     .clk        ( clk           ),
     .cenop      ( cenop         ),
@@ -217,7 +324,14 @@ jtopl_eg u_eg(
     .pg_rst_II  ( pg_rst_II     )
 );
 
-jtopl_op #(.OPL_TYPE(OPL_TYPE)) u_op(
+jtopl_op #(
+    .OPL_TYPE(OPL_TYPE),
+    .GROUP_WIDTH(GROUP_WIDTH),
+    .OP_WIDTH(OP_WIDTH),
+    .CON_WIDTH(CON_WIDTH),
+    .FB_WIDTH(FB_WIDTH),
+    .WAVESEL_WIDTH(WAVESEL_WIDTH)
+) u_op(
     .rst        ( rst           ),
     .clk        ( clk           ),
     .cenop      ( cenop         ),
@@ -232,23 +346,35 @@ jtopl_op #(.OPL_TYPE(OPL_TYPE)) u_op(
     .fb_I       ( fb_I          ), // voice feedback
     .wavsel_I   ( wavsel_I      ), // sine mask (OPL2)
     
+    .rhy_oen_I  ( rhy_oen_I     ),
     .con_I      ( con_I         ),
+    .dac_en_I   ( dac_en_I      ),
     .op_result  ( op_result     ),
-    .op_out     ( op_out        ),
-    .con_out    ( con_out       )
+    .dac_en_out ( dac_en_out    ),
+    .sum_en_out ( sum_en_out    ),
+    .rhy2x_out  ( rhy2x_out     )
 );
 
-jtopl_acc u_acc(
+jtopl_acc #(
+    .OPL_TYPE(OPL_TYPE),
+    .OP_WIDTH(OP_WIDTH),
+    .CON_WIDTH(CON_WIDTH),
+    .MONO(MONO),
+    .ACCW(ACCW)
+)u_acc(
     .rst        ( rst           ),
     .clk        ( clk           ),
-    .slot       ( slot          ),
-    .rhy_en     ( rhy_en        ),
     .cenop      ( cenop         ),
-    .zero       ( zero          ),
+    .zero       ( slot[2+6]     ),
+    .rhy2x      ( rhy2x_out     ),
     .op_result  ( op_result     ),
-    .op         ( op_out        ),
-    .con        ( con_out       ),
-    .snd        ( snd           )
+    .dac_en     ( dac_en_out    ),
+    .sum_en     ( sum_en_out    ),
+    .snd_a      ( snd_a         ),
+    .snd_b      ( snd_b         ),
+    .snd_c      ( snd_c         ),
+    .snd_d      ( snd_d         ),
+    .sample     ( sample        )
 );
 
 `ifdef SIMULATION

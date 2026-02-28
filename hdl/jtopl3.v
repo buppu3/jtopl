@@ -19,31 +19,37 @@
 
     */
 
-module jtopl2(
+module jtopl3(
     input                  rst,        // rst should be at least 6 clk&cen cycles long
     input                  clk,        // CPU clock
-    input                  cen,        // optional clock enable, it not needed leave as 1'b1
+    input                  cen,        // 14.31818MHz
     input           [ 7:0] din,
-    input                  addr,
+    input           [ 1:0] addr,
     input                  cs_n,
     input                  wr_n,
     output          [ 7:0] dout,
     output                 irq_n,
     // combined output
-    output  signed  [15:0] snd,
+    output  signed  [15:0] snd_a,
+    output  signed  [15:0] snd_b,
+    output  signed  [15:0] snd_c,
+    output  signed  [15:0] snd_d,
     output                 sample
 );
 
-parameter OPL_TYPE=2;
-parameter SLOTS = 18;
-parameter CHANNELS = 9;
-parameter CH_WIDTH = 4;
-parameter GROUP_WIDTH = 2;
-parameter OP_WIDTH = 1;
-parameter CON_WIDTH = 1;
+parameter OPL_TYPE=3;
+parameter SLOTS = 36;
+parameter CHANNELS = 18;
+parameter CH_WIDTH = 5;
+parameter GROUP_WIDTH = 3;
+parameter OP_WIDTH = 2;
+parameter CON_WIDTH = 3;
 parameter FB_WIDTH = 3;
-parameter WAVESEL_WIDTH = 2;
-parameter CLKDIV=2;
+parameter WAVESEL_WIDTH = 3;
+parameter CLKDIV=3;
+parameter MONO = 0;
+parameter ACCW = 18;
+parameter STATUS_BITS = 5'd6;
 
     `define JTOPL2
     jtopl #(
@@ -56,21 +62,24 @@ parameter CLKDIV=2;
         .CON_WIDTH(CON_WIDTH),
         .FB_WIDTH(FB_WIDTH),
         .WAVESEL_WIDTH(WAVESEL_WIDTH),
-        .CLKDIV(CLKDIV)
+        .CLKDIV(CLKDIV),
+        .MONO(MONO),
+        .ACCW(ACCW),
+        .STATUS_BITS(STATUS_BITS)
     ) u_base(
         .rst    ( rst       ),
         .clk    ( clk       ),
         .cen    ( cen       ),
         .din    ( din       ),
-        .addr   ({1'b0,addr}),
+        .addr   ( addr      ),
         .cs_n   ( cs_n      ),
         .wr_n   ( wr_n      ),
         .dout   ( dout      ),
         .irq_n  ( irq_n     ),
-        .snd_a  ( snd       ),
-        .snd_b  (           ),
-        .snd_c  (           ),
-        .snd_d  (           ),
+        .snd_a  ( snd_a     ),
+        .snd_b  ( snd_b     ),
+        .snd_c  ( snd_c     ),
+        .snd_d  ( snd_d     ),
         .sample ( sample    )
     );
 

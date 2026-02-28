@@ -20,7 +20,7 @@
     */
 
 module jtopl_eg_final(
-    input      [3:0] lfo_mod,
+    input      [4:0] lfo_mod,
     input      [3:0] fnum,
     input      [2:0] block,
     input            amsen,
@@ -31,7 +31,7 @@ module jtopl_eg_final(
     output reg [9:0] eg_limited
 );
 
-reg  [ 5:0] am_final;
+reg  [ 6:0] am_final;
 reg  [11:0] sum_eg_tl;
 reg  [11:0] sum_eg_tl_am;
 reg  [ 8:0] ksl_dB;
@@ -44,16 +44,16 @@ always @(*) begin
     if( ksl_base[7] || ksl==2'b0 ) begin
         ksl_dB = 9'd0;
     end else begin
-        ksl_dB = {ksl_base[6:0],2'b0} >> ~ksl;
+        ksl_dB = {ksl_base[6:0],2'b0} >> {~ksl[0],~ksl[1]};
     end
 end
 
 always @(*) begin
-    am_final = amsen ? ( ams ? {lfo_mod, 2'b0} : {2'b0, lfo_mod} ) : 6'd0;
+    am_final = amsen ? ( ams ? {lfo_mod, 2'b0} : {2'b0, lfo_mod} ) : 7'd0;
     sum_eg_tl = {  2'b0, tl,     3'd0 } + 
                 {  1'b0, ksl_dB, 1'd0 } +
                 {  1'b0, eg_pure_in}; // leading zeros needed to compute correctly
-    sum_eg_tl_am = sum_eg_tl + { 5'd0, am_final };
+    sum_eg_tl_am = sum_eg_tl + { 4'd0, am_final, 1'b0 };
 end
 
 always @(*) begin

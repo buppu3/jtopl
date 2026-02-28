@@ -21,37 +21,108 @@
 */
 
 module jtopl_acc(
-    input                rst,
-    input                clk,
-    input                cenop,
-    input         [17:0] slot,
-    input                rhy_en,
-    input  signed [12:0] op_result,
-    input                zero,
-    input                op,  // 0 for modulator operators
-    input                con, // 0 for modulated connection
-    output signed [15:0] snd
+    input                         rst,
+    input                         clk,
+    input                         cenop,
+    input  signed [12:0]          op_result,
+    input                         zero,
+    input                         rhy2x,
+    input         [3:0]           dac_en,
+    input                         sum_en,
+    output signed [15:0]          snd_a,
+    output signed [15:0]          snd_b,
+    output signed [15:0]          snd_c,
+    output signed [15:0]          snd_d,
+    output                        sample
 );
 
-wire               sum_en;
-wire signed [13:0] op2x;
-wire               rhy2x;
+parameter ACCW = 17;
+parameter MONO = 0;
+parameter OPL_TYPE=2;
+parameter OP_WIDTH = 1;
+parameter CON_WIDTH = 1;
 
-// all rhythm channels are amplified by two
-// given the data path latency, slot 16(-1) data enters at slot 6(-1) and so on
-// slots 13~18 (counting from 1 to 18) will enter when bits slot[7:2] are set
-assign rhy2x  = rhy_en && |slot[7:2];
-assign sum_en = op | con;
+assign sample = zero;
+
+wire signed [13:0] op2x;
 assign op2x   = rhy2x ? {op_result, 1'b0} : {op_result[12],op_result};
 
+generate if(OPL_TYPE == 3 && MONO == 0) begin
+
+wire sum_a_en = dac_en[0] & sum_en;
+wire sum_b_en = dac_en[1] & sum_en;
+wire sum_c_en = dac_en[2] & sum_en;
+wire sum_d_en = dac_en[3] & sum_en;
+
 // Continuous output
-jtopl_single_acc #(.INW(14),.OUTW(16))  u_acc(
+jtopl_single_acc #(.INW(14),.OUTW(16), .ACCW(ACCW))  u_acc_a (
+    .clk        ( clk       ),
+    .cenop      ( cenop     ),
+    .op_result  ( op2x      ),
+    .sum_en     ( sum_a_en  ),
+    .zero       ( zero      ),
+    .snd        ( snd_a     )
+);
+jtopl_single_acc #(.INW(14),.OUTW(16), .ACCW(ACCW))  u_acc_b (
+    .clk        ( clk       ),
+    .cenop      ( cenop     ),
+    .op_result  ( op2x      ),
+    .sum_en     ( sum_b_en  ),
+    .zero       ( zero      ),
+    .snd        ( snd_b     )
+);
+jtopl_single_acc #(.INW(14),.OUTW(16), .ACCW(ACCW))  u_acc_c (
+    .clk        ( clk       ),
+    .cenop      ( cenop     ),
+    .op_result  ( op2x      ),
+    .sum_en     ( sum_c_en  ),
+    .zero       ( zero      ),
+    .snd        ( snd_c     )
+);
+jtopl_single_acc #(.INW(14),.OUTW(16), .ACCW(ACCW))  u_acc_d (
+    .clk        ( clk       ),
+    .cenop      ( cenop     ),
+    .op_result  ( op2x      ),
+    .sum_en     ( sum_d_en  ),
+    .zero       ( zero      ),
+    .snd        ( snd_d     )
+);
+
+end else if(OPL_TYPE == 3 && MONO != 0) begin
+
+wire sum_a_en = |dac_en & sum_en;
+
+// Continuous output
+jtopl_single_acc #(.INW(14),.OUTW(16), .ACCW(ACCW))  u_acc(
     .clk        ( clk       ),
     .cenop      ( cenop     ),
     .op_result  ( op2x      ),
     .sum_en     ( sum_en    ),
     .zero       ( zero      ),
-    .snd        ( snd       )
+    .snd        ( snd_a     )
 );
+
+assign snd_b = 0;
+assign snd_c = 0;
+assign snd_d = 0;
+
+end else begin
+
+// Continuous output
+jtopl_single_acc #(.INW(14),.OUTW(16), .ACCW(ACCW))  u_acc(
+    .clk        ( clk       ),
+    .cenop      ( cenop     ),
+    .op_result  ( op2x      ),
+    .sum_en     ( sum_en    ),
+    .zero       ( zero      ),
+    .snd        ( snd_a     )
+);
+
+assign snd_b = snd_a;
+assign snd_c = 0;
+assign snd_d = 0;
+
+end
+endgenerate
 
 endmodule

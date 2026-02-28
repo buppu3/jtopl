@@ -27,7 +27,8 @@ module jtopl_logsin(
     input             clk,
     input             cen,
     input      [ 7:0] addr,
-    output reg [11:0] logsin
+    output reg [11:0] logsin,
+    output reg [11:0] logsin2
 );  
 
 reg [11:0] sinelut[255:0];
@@ -291,7 +292,8 @@ initial begin
 end
 
 always @ (posedge clk) if(cen) begin
-    logsin <= sinelut[addr];
+    logsin  <= sinelut[addr];
+    logsin2 <= sinelut[{addr[6:0], 1'b0}];
 end
 
 endmodule

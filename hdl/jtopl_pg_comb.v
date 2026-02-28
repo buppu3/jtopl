@@ -51,7 +51,8 @@ module jtopl_pg_comb (
 wire signed [3:0] pm_offset;
 wire        [9:0] phase_pre;
 
-assign keycode = { block, fnum[9] };
+wire nts = 0;
+assign keycode = { block, nts  ? fnum[9] : fnum[8] };
 
 /*  pm and pg_inc operate in parallel */ 
 jtopl_pm u_pm(

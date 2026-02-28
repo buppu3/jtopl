@@ -25,13 +25,23 @@
 // obscure, but apparently that's how the original was done
 
 module jtopl_lfo(
-    input             rst,
-    input             clk,
-    input             cenop,
-    input      [17:0] slot,
-    output     [ 2:0] vib_cnt,
-    output reg [ 3:0] trem
+    input                  rst,
+    input                  clk,
+    input                  cenop,
+    input      [SLOTS-1:0] slot,
+    output     [ 2:0]      vib_cnt,
+    output reg [ 4:0]      trem
 );
+
+parameter OPL_TYPE=1;
+parameter SLOTS = 18;
+//parameter CHANNELS = 9;
+//parameter CH_WIDTH = 4;
+//parameter GROUP_WIDTH = 2;
+//parameter OP_WIDTH = 1;
+//parameter CON_WIDTH = 1;
+//parameter FB_WIDTH = 3;
+//parameter WAVESEL_WIDTH = 2;
 
 parameter [6:0] LIM=7'd60;
 
@@ -59,7 +69,7 @@ always @(posedge clk) begin
         am_cnt   <= 9'd0;
         am_step  <= 0;
     end else if( cenop ) begin
-        if( slot[17] ) begin
+        if( slot[SLOTS-1] ) begin
             cnt      <= next;
             am_step  <= &next[5:0];
             am_incen <= 1;
@@ -73,7 +83,7 @@ always @(posedge clk) begin
             if( !am_dir && ( (am_cnt[6:0]&7'h69) == 7'h69) ) am_dir <= 1;
         end
         // output
-        if( slot[0] ) trem <= am_cnt[6:3];
+        if( slot[0] ) trem <= am_cnt[6:2];
     end
 end
 

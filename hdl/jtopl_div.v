@@ -27,8 +27,9 @@ module jtopl_div(
 );
 
 parameter OPL_TYPE=1;
+parameter CLKDIV=2;
 
-localparam W = 2; // OPL_TYPE==2 ? 1 : 2;
+localparam W = CLKDIV; // OPL_TYPE==2 ? 1 : 2;
 
 reg  [W-1:0] cnt;
 

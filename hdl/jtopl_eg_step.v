@@ -33,41 +33,41 @@ module jtopl_eg_step(
 );
 
 reg  [6:0]   pre_rate;
-wire [1:0]   shby;
+wire [3:0]   rof;
 
-assign shby = ksr ? 2'd1 : 2'd3;
+assign rof = ksr ? keycode[3:0] : {2'd0, keycode[3:2]};
 
 always @(*) begin : pre_rate_calc
-    if( base_rate == 5'd0 )
+    if( base_rate[4:1] == 0 )
         pre_rate = 7'd0;
     else
-        pre_rate = { 1'b0, base_rate, 1'b0 } +  // base_rate LSB is always zero except for RR
-            ({ 3'b0, keycode } >> shby);
+        pre_rate = {1'd0, base_rate[4:1], 2'd0} + {3'd0, rof};
 end
 
 always @(*)
-    rate = pre_rate>=7'b1111_00 ? 6'b1111_11 : pre_rate[5:0];
+    rate = pre_rate[6] ? 6'b1111_11 : pre_rate[5:0];
 
 reg [2:0] cnt;
 
-reg [4:0] mux_sel;
-always @(*) begin
-    mux_sel = attack ? (rate[5:2]+4'd1): {1'b0,rate[5:2]};
-end
+//reg [3:0] mux_sel;
+//always @(*) begin
+//    mux_sel = rate[5:2];
+//end
 
 always @(*) 
-    case( mux_sel )
-        5'h0:    cnt = eg_cnt[13:11];
-        5'h1:    cnt = eg_cnt[12:10];
-        5'h2:    cnt = eg_cnt[11: 9];
-        5'h3:    cnt = eg_cnt[10: 8];
-        5'h4:    cnt = eg_cnt[ 9: 7];
-        5'h5:    cnt = eg_cnt[ 8: 6];
-        5'h6:    cnt = eg_cnt[ 7: 5];
-        5'h7:    cnt = eg_cnt[ 6: 4];
-        5'h8:    cnt = eg_cnt[ 5: 3];
-        5'h9:    cnt = eg_cnt[ 4: 2];
-        5'ha:    cnt = eg_cnt[ 3: 1];
+    case( rate[5:2] )
+        5'h0:    cnt = eg_cnt[14:12];
+        5'h1:    cnt = eg_cnt[13:11];
+        5'h2:    cnt = eg_cnt[12:10];
+        5'h3:    cnt = eg_cnt[11: 9];
+        5'h4:    cnt = eg_cnt[10: 8];
+        5'h5:    cnt = eg_cnt[ 9: 7];
+        5'h6:    cnt = eg_cnt[ 8: 6];
+        5'h7:    cnt = eg_cnt[ 7: 5];
+        5'h8:    cnt = eg_cnt[ 6: 4];
+        5'h9:    cnt = eg_cnt[ 5: 3];
+        5'ha:    cnt = eg_cnt[ 4: 2];
+        5'hb:    cnt = eg_cnt[ 3: 1];
         default: cnt = eg_cnt[ 2: 0];
     endcase
 
@@ -75,30 +75,24 @@ always @(*)
 reg [7:0] step_idx;
 
 always @(*) begin : rate_step
-    if( rate[5:4]==2'b11 ) begin // 0 means 1x, 1 means 2x
-        if( rate[5:2]==4'hf && attack)
-            step_idx = 8'b11111111; // Maximum attack speed, rates 60&61
-        else
+    if(rate[5:2] >= 4'd13) begin
         case( rate[1:0] )
             2'd0: step_idx = 8'b00000000;
-            2'd1: step_idx = 8'b10001000; // 2
-            2'd2: step_idx = 8'b10101010; // 4
-            2'd3: step_idx = 8'b11101110; // 6
+            2'd1: step_idx = 8'b00010001;
+            2'd2: step_idx = 8'b01010101;
+            2'd3: step_idx = 8'b01110111;
         endcase
     end
     else begin
-        if( rate[5:2]==4'd0 && !attack)
-            step_idx = 8'b11111110; // limit slowest decay rate
-        else
         case( rate[1:0] )
-            2'd0: step_idx = 8'b10101010; // 4
-            2'd1: step_idx = 8'b11101010; // 5
-            2'd2: step_idx = 8'b11101110; // 6
-            2'd3: step_idx = 8'b11111110; // 7
+            2'd0: step_idx = 8'b01010101;
+            2'd1: step_idx = 8'b01011101;
+            2'd2: step_idx = 8'b01110111;
+            2'd3: step_idx = 8'b01111111;
         endcase
     end
-    // a rate of zero keeps the level still
-    step = rate[5:1]==5'd0 ? 1'b0 : step_idx[ cnt ];
+
+    step = step_idx[ cnt ];
 end
 
 assign cnt_lsb = cnt[0];

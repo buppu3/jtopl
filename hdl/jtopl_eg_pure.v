@@ -29,45 +29,35 @@ module jtopl_eg_pure(
 );
 
 reg [ 3:0]  dr_sum;
-reg [ 9:0]  dr_adj;
 reg [10:0]  dr_result;
 
 always @(*) begin : dr_calculation
-    case( rate[5:2] )
-        4'b1100: dr_sum = 4'h2; // 12
-        4'b1101: dr_sum = 4'h4; // 13
-        4'b1110: dr_sum = 4'h8; // 14
-        4'b1111: dr_sum = 4'hf;// 15
-        default: dr_sum = { 2'b0, step, 1'b0 };
+    case (rate[5:2])
+        4'd 0:  dr_sum = 0;
+        4'd13:  dr_sum = step ? 2<<1 : 1<<1;
+        4'd14:  dr_sum = step ? 4<<1 : 2<<1;
+        4'd15:  dr_sum = 4 << 1;
+        default:dr_sum = {2'b0, step, 1'b0 };
     endcase
-    // Decay rate attenuation is multiplied by 4 for SSG operation
-    dr_adj    = {6'd0, dr_sum};
-    dr_result = dr_adj + eg_in;
+
+    dr_result = eg_in + {6'd0, dr_sum};
 end
 
-reg [ 7:0] ar_sum0;
-reg [ 8:0] ar_sum1;
-reg [10:0] ar_result;
-reg [ 9:0] ar_sum;
+reg signed [10:0] ar_inv;
+reg signed [10:0] ar_result;
+reg signed [10:0] ar_sum;
 
 always @(*) begin : ar_calculation
-    casez( rate[5:2] )
-        default: ar_sum0 = {2'd0, eg_in[9:4]};
-        4'b1011, 4'b1100: ar_sum0 = {1'd0, eg_in[9:3]}; // 'hb
-        // 4'b1101: ar_sum0 = {1'd0, eg_in[9:3]}; // 'hd
-        // 4'b111?: ar_sum0 = eg_in[9:2];         // 'he/f
-        4'b1101, 4'b111?: ar_sum0 = eg_in[9:2];         // 'he/f
+    ar_inv = ~{1'b0,eg_in};
+    case (rate[5:2])
+        4'd 0:  ar_sum = 0;
+        4'd13:  ar_sum = step ? {3'b0, eg_in[9:2]} : {4'b0, eg_in[9:3]};    // eg_in * (step ? 2/8 : 1/8)
+        4'd14:  ar_sum = step ? {2'b0, eg_in[9:1]} : {3'b0, eg_in[9:2]};    // eg_in * (step ? 4/8 : 2/8)
+        4'd15:  ar_sum =        {1'b0, eg_in[9:0]};                         // eg_in * 8/8
+        default:ar_sum = step ? {4'b0, eg_in[9:3]} : -1;                    // eg_in * (step ? 1/8 : 0/8)
     endcase
-    ar_sum1 = ar_sum0+9'd1;
-    if( rate[5:2] == 4'he )
-        ar_sum = { ar_sum1, 1'b0 };
-    else if( rate[5:2] > 4'hb )
-        ar_sum = step ? { ar_sum1, 1'b0 } : { 1'b0, ar_sum1 }; // adds ar_sum1*3/2 max
-    // else if( rate[5:2] == 4'hb )
-    //     ar_sum = step ? { ar_sum1, 1'b0 } : 10'd0; // adds ar_sum1 max
-    else
-        ar_sum = step ? { 1'b0, ar_sum1 } : 10'd0; // adds ar_sum1/2 max
-    ar_result = eg_in-ar_sum;
+
+    ar_result = eg_in + ~ar_sum;
 end
 
 ///////////////////////////////////////////////////////////
@@ -81,7 +71,9 @@ always @(*) begin
             eg_pre_fastar = dr_result[10] ? 10'h3FF : dr_result[9:0];
     end
     else eg_pre_fastar = eg_in;
-    eg_pure = (attack&rate[5:1]==5'h1F) ? 10'd0 : eg_pre_fastar;
+    eg_pure = (attack&rate[5:2]==4'd15) ? 10'd0 : eg_pre_fastar;
 end
+
+
 
 endmodule
