@@ -66,7 +66,7 @@ module jtopl_reg(
     output                     viben_I,
     // OP
     output [WAVESEL_WIDTH-1:0] wavsel_I,
-    input                      wave_mode,
+    input                      wave_mode[MODULE_COUNT-1:0],
     // EG
     output           keyon_I,
     output     [5:0] tl_IV,
@@ -179,10 +179,13 @@ generate
 
     if( OPL_TYPE==1 )
         assign mavemask = 0;
+    else if( OPL_TYPE==3 && MODULE_COUNT > 1)
+        assign wavemask = new_en ? 3'b111 :
+                          wave_mode[group >= 3 ? 1 : 0] ? 3'b011 : 3'b000;
     else if( OPL_TYPE==3 )
-        assign wavemask = {new_en, wave_mode, wave_mode};
+        assign wavemask = {new_en, 2'b11 };
     else
-        assign wavemask = {WAVESEL_WIDTH{wave_mode}};
+        assign wavemask = {WAVESEL_WIDTH{wave_mode[0]}};
 endgenerate
 
 // Memory for CH registers

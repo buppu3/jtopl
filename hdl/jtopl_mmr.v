@@ -100,6 +100,7 @@ jtopl_div #(
 );
 
 localparam [8:0] REG_TESTYM  = 9'h001,
+                 REG_TESTYM_2= 9'h101,
                  REG_CLKA    = 9'h002,
                  REG_CLKA_2  = 9'h102,
                  REG_CLKB    = 9'h003,
@@ -122,7 +123,7 @@ reg  [ 2:0]            sel_sub;       // subslot to update
 reg                    up_fnumlo, up_fnumhi, up_fbcon,
                        up_mult, up_ksl_tl, up_ar_dr, up_sl_rr,
                        up_wav;
-reg                    wave_mode,     // 1 if waveform selection is enabled (OPL2)
+reg                    wave_mode[MODULE_COUNT-1:0],     // 1 if waveform selection is enabled (OPL2)
                        reg_csm_en[MODULE_COUNT-1:0],
                        reg_note_sel[MODULE_COUNT-1:0];  // keyboard split, not implemented
 reg                    rhy_en[MODULE_COUNT-1:0];
@@ -179,7 +180,7 @@ always @(posedge clk) begin
         reg_csm_en  [0] <= 0;
         reg_note_sel[0] <= 0;
         // OPL2 waveforms
-        wave_mode <= 0;
+        wave_mode[0] <= 0;
         // timers
         { value_A[0], value_B[0] } <= 16'd0;
         { clr_flag_B[0], clr_flag_A[0], load_B[0], load_A[0] } <= 4'd0;
@@ -203,6 +204,7 @@ always @(posedge clk) begin
             { clr_flag_B[1], clr_flag_A[1], load_B[1], load_A[1] } <= 4'd0;
             flagen_A[1]   <= 1;
             flagen_B[1]   <= 1;
+            wave_mode[1] <= 0;
         end
     end else begin
         // WRITE IN REGISTERS
@@ -225,7 +227,8 @@ always @(posedge clk) begin
                 // General control (<0x20 registers)
                 if(wrt_en) begin
                     casez( selreg )
-                        REG_TESTYM: if(OPL_TYPE>1) wave_mode <= din[5];
+                        REG_TESTYM: if(OPL_TYPE>1) wave_mode[0] <= din[5];
+                        REG_TESTYM_2: if(MODULE_COUNT>1 && !new_en) wave_mode[1] <= din[5];
                         REG_CLKA:   value_A[0] <= din;
                         REG_CLKA_2: if(MODULE_COUNT > 1 && !new_en) value_A[1] <= din;
                         REG_CLKB:   value_B[0] <= din;
