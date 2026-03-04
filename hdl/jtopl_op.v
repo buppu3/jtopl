@@ -214,16 +214,21 @@ wire signed [OPW-1:0] fb0 = prev[OPW-1:0];
 
 // REGISTER/CYCLE 1
 // Creation of phase modulation (FM) feedback signal, before shifting
-reg signed [OPW-1:0] modmux_I;
-reg signed [OPW-1:0] fbmod_I;
+reg signed [9:0] fbmod_I;
+reg signed [OPW:0] fbsum;
 
 always @(*) begin
-    modmux_I = fb_in_en ? (fb1+fb0) : op_result;    // op_result には 3slot 前の演算結果が格納されている
-    // OPL-L shifts by 8-FB
-    // OPL3  shifts by 9-FB
-    // OPLL seems to use lower resolution for OPW so it makes
-    // sense that it shifts by one fewer
-    fbmod_I  = modmux_I>>>(4'd9-{1'b0,fb_I_d});
+    fbsum = {fb1[OPW-1], fb1} + {fb0[OPW-1], fb0};
+    case (fb_I_d)
+        default: fbmod_I = 0;
+        3'd1:    fbmod_I = { {4{fbsum[13]}}, fbsum[13:8] };
+        3'd2:    fbmod_I = { {3{fbsum[13]}}, fbsum[13:7] };
+        3'd3:    fbmod_I = { {2{fbsum[13]}}, fbsum[13:6] };
+        3'd4:    fbmod_I = {   fbsum[13] , fbsum[13:5] };
+        3'd5:    fbmod_I = fbsum[13:4];
+        3'd6:    fbmod_I = fbsum[12:3];
+        3'd7:    fbmod_I = fbsum[11:2];
+    endcase
 end
 
 reg signed [9:0] phasemod_I;
@@ -231,9 +236,9 @@ reg signed [9:0] phasemod_I;
 always @(*) begin
     // Shift FM feedback signal
     if (fb_in_en)
-        phasemod_I = fb_I_d==3'd0 ? 10'd0 : fbmod_I[9:0];
+        phasemod_I = fbmod_I[9:0];
     else if(car_en)
-        phasemod_I = modmux_I[9:0];
+        phasemod_I = op_result[9:0];
     else
         phasemod_I = 10'd0;
 end
