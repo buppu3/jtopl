@@ -69,6 +69,8 @@ parameter FB_WIDTH = 3;
 //parameter WAVESEL_WIDTH = 2;
 parameter SLOT_RHY_START = 12;
 parameter SLOT_RHY_END = 17;
+parameter OPL2_1_DAC_OUT = 4'b0011;
+parameter OPL2_2_DAC_OUT = 4'b0011;
 
 parameter   SLOT_RHY_BD0 = 12,
             SLOT_RHY_BD1 = 15,
@@ -428,10 +430,10 @@ generate if(OPL_TYPE == 3) begin
                 case ({group, sub})
                     6'o55, 6'o00, 6'o01, 6'o02, 6'o03, 6'o04,
                     6'o05, 6'o10, 6'o11, 6'o12, 6'o13, 6'o14,
-                    6'o15, 6'o20, 6'o21, 6'o22, 6'o23, 6'o24:  dac_en <= 4'b0001;
+                    6'o15, 6'o20, 6'o21, 6'o22, 6'o23, 6'o24:  dac_en <= OPL2_1_DAC_OUT;
                     6'o25, 6'o30, 6'o31, 6'o32, 6'o33, 6'o34,
                     6'o35, 6'o40, 6'o41, 6'o42, 6'o43, 6'o44,
-                    6'o45, 6'o50, 6'o51, 6'o52, 6'o53, 6'o54:  dac_en <= 4'b0010;
+                    6'o45, 6'o50, 6'o51, 6'o52, 6'o53, 6'o54:  dac_en <= OPL2_2_DAC_OUT;
                     default:dac_en <= 0;
                 endcase
             end

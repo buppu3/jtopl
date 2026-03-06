@@ -88,6 +88,8 @@ parameter CON_WIDTH = 1;
 parameter FB_WIDTH = 3;
 parameter WAVESEL_WIDTH = 2;
 parameter CLKDIV=2;
+parameter OPL2_1_DAC_OUT = 4'b0011;
+parameter OPL2_2_DAC_OUT = 4'b0011;
 
 jtopl_div #(
     .OPL_TYPE(OPL_TYPE),
@@ -364,7 +366,9 @@ jtopl_reg #(
     .OP_WIDTH(OP_WIDTH),
     .CON_WIDTH(CON_WIDTH),
     .FB_WIDTH(FB_WIDTH),
-    .WAVESEL_WIDTH(WAVESEL_WIDTH)
+    .WAVESEL_WIDTH(WAVESEL_WIDTH),
+    .OPL2_1_DAC_OUT(OPL2_1_DAC_OUT),
+    .OPL2_2_DAC_OUT(OPL2_2_DAC_OUT)
 ) u_reg(
     .rst        ( rst           ),
     .clk        ( clk           ),

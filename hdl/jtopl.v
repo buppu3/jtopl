@@ -52,6 +52,8 @@ parameter CLKDIV=2;
 parameter MONO = 0;
 parameter ACCW = 17;
 parameter OUTW = 16;
+parameter OPL2_1_DAC_OUT = 4'b0011;
+parameter OPL2_2_DAC_OUT = 4'b0011;
 
 wire                    cenop;
 wire                    write;
@@ -135,7 +137,9 @@ jtopl_mmr #(
     .CON_WIDTH(CON_WIDTH),
     .FB_WIDTH(FB_WIDTH),
     .WAVESEL_WIDTH(WAVESEL_WIDTH),
-    .CLKDIV(CLKDIV)
+    .CLKDIV(CLKDIV),
+    .OPL2_1_DAC_OUT(OPL2_1_DAC_OUT),
+    .OPL2_2_DAC_OUT(OPL2_2_DAC_OUT)
 ) u_mmr(
     .rst        ( rst           ),
     .clk        ( clk           ),

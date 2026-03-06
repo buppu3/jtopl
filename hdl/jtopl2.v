@@ -46,6 +46,7 @@ parameter WAVESEL_WIDTH = 2;
 parameter ACCW = 18;    // 13bit * 18op
 parameter OUTW = 16;
 parameter CLKDIV=2;
+parameter DAC_OUT = 4'b0011;
 
     `define JTOPL2
     jtopl #(
@@ -60,7 +61,9 @@ parameter CLKDIV=2;
         .WAVESEL_WIDTH(WAVESEL_WIDTH),
         .CLKDIV(CLKDIV),
         .ACCW(ACCW),
-        .OUTW(OUTW)
+        .OUTW(OUTW),
+        .OPL2_1_DAC_OUT(DAC_OUT),
+        .OPL2_2_DAC_OUT(DAC_OUT)
     ) u_base(
         .rst    ( rst       ),
         .clk    ( clk       ),

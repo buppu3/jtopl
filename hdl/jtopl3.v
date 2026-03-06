@@ -51,6 +51,8 @@ parameter MONO = 0;
 parameter ACCW = 19;    // 13bit * 36op
 parameter OUTW = 16;
 parameter STATUS_BITS = 5'd6;
+parameter OPL2_1_DAC_OUT = 4'b0011;
+parameter OPL2_2_DAC_OUT = 4'b0011;
 
     `define JTOPL2
     jtopl #(
@@ -67,7 +69,9 @@ parameter STATUS_BITS = 5'd6;
         .MONO(MONO),
         .ACCW(ACCW),
         .OUTW(OUTW),
-        .STATUS_BITS(STATUS_BITS)
+        .STATUS_BITS(STATUS_BITS),
+        .OPL2_1_DAC_OUT(OPL2_1_DAC_OUT),
+        .OPL2_2_DAC_OUT(OPL2_2_DAC_OUT)
     ) u_base(
         .rst    ( rst       ),
         .clk    ( clk       ),
