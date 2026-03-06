@@ -29,14 +29,15 @@ module jtopl_acc(
     input                         rhy2x,
     input         [3:0]           dac_en,
     input                         sum_en,
-    output signed [15:0]          snd_a,
-    output signed [15:0]          snd_b,
-    output signed [15:0]          snd_c,
-    output signed [15:0]          snd_d,
+    output signed [OUTW-1:0]      snd_a,
+    output signed [OUTW-1:0]      snd_b,
+    output signed [OUTW-1:0]      snd_c,
+    output signed [OUTW-1:0]      snd_d,
     output                        sample
 );
 
 parameter ACCW = 17;
+parameter OUTW = 16;
 parameter MONO = 0;
 parameter OPL_TYPE=2;
 parameter OP_WIDTH = 1;
@@ -55,7 +56,7 @@ wire sum_c_en = dac_en[2] & sum_en;
 wire sum_d_en = dac_en[3] & sum_en;
 
 // Continuous output
-jtopl_single_acc #(.INW(14),.OUTW(16), .ACCW(ACCW))  u_acc_a (
+jtopl_single_acc #(.INW(14),.OUTW(OUTW), .ACCW(ACCW))  u_acc_a (
     .clk        ( clk       ),
     .cenop      ( cenop     ),
     .op_result  ( op2x      ),
@@ -63,7 +64,7 @@ jtopl_single_acc #(.INW(14),.OUTW(16), .ACCW(ACCW))  u_acc_a (
     .zero       ( zero      ),
     .snd        ( snd_a     )
 );
-jtopl_single_acc #(.INW(14),.OUTW(16), .ACCW(ACCW))  u_acc_b (
+jtopl_single_acc #(.INW(14),.OUTW(OUTW), .ACCW(ACCW))  u_acc_b (
     .clk        ( clk       ),
     .cenop      ( cenop     ),
     .op_result  ( op2x      ),
@@ -71,7 +72,7 @@ jtopl_single_acc #(.INW(14),.OUTW(16), .ACCW(ACCW))  u_acc_b (
     .zero       ( zero      ),
     .snd        ( snd_b     )
 );
-jtopl_single_acc #(.INW(14),.OUTW(16), .ACCW(ACCW))  u_acc_c (
+jtopl_single_acc #(.INW(14),.OUTW(OUTW), .ACCW(ACCW))  u_acc_c (
     .clk        ( clk       ),
     .cenop      ( cenop     ),
     .op_result  ( op2x      ),
@@ -79,7 +80,7 @@ jtopl_single_acc #(.INW(14),.OUTW(16), .ACCW(ACCW))  u_acc_c (
     .zero       ( zero      ),
     .snd        ( snd_c     )
 );
-jtopl_single_acc #(.INW(14),.OUTW(16), .ACCW(ACCW))  u_acc_d (
+jtopl_single_acc #(.INW(14),.OUTW(OUTW), .ACCW(ACCW))  u_acc_d (
     .clk        ( clk       ),
     .cenop      ( cenop     ),
     .op_result  ( op2x      ),
@@ -93,7 +94,7 @@ end else if(OPL_TYPE == 3 && MONO != 0) begin
 wire sum_a_en = |dac_en & sum_en;
 
 // Continuous output
-jtopl_single_acc #(.INW(14),.OUTW(16), .ACCW(ACCW))  u_acc(
+jtopl_single_acc #(.INW(14),.OUTW(OUTW), .ACCW(ACCW))  u_acc(
     .clk        ( clk       ),
     .cenop      ( cenop     ),
     .op_result  ( op2x      ),
@@ -109,7 +110,7 @@ assign snd_d = 0;
 end else begin
 
 // Continuous output
-jtopl_single_acc #(.INW(14),.OUTW(16), .ACCW(ACCW))  u_acc(
+jtopl_single_acc #(.INW(14),.OUTW(OUTW), .ACCW(ACCW))  u_acc(
     .clk        ( clk       ),
     .cenop      ( cenop     ),
     .op_result  ( op2x      ),

@@ -30,7 +30,7 @@ module jtopl2(
     output          [ 7:0] dout,
     output                 irq_n,
     // combined output
-    output  signed  [15:0] snd,
+    output  signed  [OUTW-1:0] snd,
     output                 sample
 );
 
@@ -43,6 +43,8 @@ parameter OP_WIDTH = 1;
 parameter CON_WIDTH = 1;
 parameter FB_WIDTH = 3;
 parameter WAVESEL_WIDTH = 2;
+parameter ACCW = 18;    // 13bit * 18op
+parameter OUTW = 16;
 parameter CLKDIV=2;
 
     `define JTOPL2
@@ -56,7 +58,9 @@ parameter CLKDIV=2;
         .CON_WIDTH(CON_WIDTH),
         .FB_WIDTH(FB_WIDTH),
         .WAVESEL_WIDTH(WAVESEL_WIDTH),
-        .CLKDIV(CLKDIV)
+        .CLKDIV(CLKDIV),
+        .ACCW(ACCW),
+        .OUTW(OUTW)
     ) u_base(
         .rst    ( rst       ),
         .clk    ( clk       ),

@@ -30,10 +30,10 @@ module jtopl8960(
     output          [ 7:0] dout,
     output                 irq_n,
     // combined output
-    output  signed  [15:0] snd_a,
-    output  signed  [15:0] snd_b,
-    output  signed  [15:0] snd_c,
-    output  signed  [15:0] snd_d,
+    output  signed  [OUTW-1:0] snd_a,
+    output  signed  [OUTW-1:0] snd_b,
+    output  signed  [OUTW-1:0] snd_c,
+    output  signed  [OUTW-1:0] snd_d,
     output                 sample
 );
 
@@ -49,7 +49,8 @@ parameter FB_WIDTH = 3;
 parameter WAVESEL_WIDTH = 3;
 parameter CLKDIV=3;
 parameter MONO = 0;
-parameter ACCW = 18;
+parameter ACCW = 19;    // 13bit * 36op
+parameter OUTW = 16;
 parameter STATUS_BITS = 5'd6;
 
     `define JTOPL2
@@ -67,6 +68,7 @@ parameter STATUS_BITS = 5'd6;
         .CLKDIV(CLKDIV),
         .MONO(MONO),
         .ACCW(ACCW),
+        .OUTW(OUTW),
         .STATUS_BITS(STATUS_BITS)
     ) u_base(
         .rst    ( rst       ),

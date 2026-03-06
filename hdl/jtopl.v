@@ -30,10 +30,10 @@ module jtopl(
     output          [ 7:0] dout,
     output                 irq_n,
     // combined output
-    output  signed  [15:0] snd_a,
-    output  signed  [15:0] snd_b,
-    output  signed  [15:0] snd_c,
-    output  signed  [15:0] snd_d,
+    output  signed  [OUTW-1:0] snd_a,
+    output  signed  [OUTW-1:0] snd_b,
+    output  signed  [OUTW-1:0] snd_c,
+    output  signed  [OUTW-1:0] snd_d,
     output                 sample
 );
 
@@ -51,6 +51,7 @@ parameter WAVESEL_WIDTH = 2;
 parameter CLKDIV=2;
 parameter MONO = 0;
 parameter ACCW = 17;
+parameter OUTW = 16;
 
 wire                    cenop;
 wire                    write;
@@ -363,7 +364,8 @@ jtopl_acc #(
     .OP_WIDTH(OP_WIDTH),
     .CON_WIDTH(CON_WIDTH),
     .MONO(MONO),
-    .ACCW(ACCW)
+    .ACCW(ACCW),
+    .OUTW(OUTW)
 )u_acc(
     .rst        ( rst           ),
     .clk        ( clk           ),
