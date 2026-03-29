@@ -69,6 +69,7 @@ module jtopl_mmr(
     output      [CON_WIDTH-1:0] con_I,
     //
     output      [ 3:0]          dac_en_I,
+    output                      rhy_en_I,
     output                      rhy_oen_I,
     output                      hh_en_I,
     output                      sd_en_I,
@@ -429,6 +430,7 @@ jtopl_reg #(
     .con_I      ( con_I         ),
 
     .dac_en_I   ( dac_en_I      ),
+    .rhy_en_I   ( rhy_en_I      ),
     .rhy_oen_I  ( rhy_oen_I     ),
     .hh_en_I    ( hh_en_I       ),
     .sd_en_I    ( sd_en_I       ),

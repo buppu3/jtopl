@@ -81,6 +81,7 @@ module jtopl_reg(
     output                     hh_en_I,
     output                     sd_en_I,
     output                     tc_en_I,
+    output                     rhy_en_I,
     output                     rhy_oen_I,
     input                      am_dep[MODULE_COUNT-1:0],
     input                      vib_dep[MODULE_COUNT-1:0],
@@ -196,7 +197,7 @@ wire [CON_WIDTH-1:0] pre_con;
 wire                 disable_con;
 
 assign disable_con = rhy_oen_I && !bd0_en_I && !hh_en_I;
-assign con_I       = !rhy_oen_I || !disable_con ? pre_con : 1'b1;
+assign con_I       = !rhy_en_I || !disable_con ? pre_con : 1'b1;
 assign keyon_I = rhy_oen_I ? rhyon_csr : pre_keyon;
 
 jtopl_reg_ch #(
@@ -238,6 +239,7 @@ jtopl_reg_ch #(
     .dac_en      ( dac_en_I     ),
     .fb          ( fb_I         ),
     .keyon       ( pre_keyon    ),
+    .rhy_en_I    ( rhy_en_I     ),
     .rhy_oen     ( rhy_oen_I    ),
     .bd0_en      ( bd0_en_I     ),
     .hh_en       ( hh_en_I      ),

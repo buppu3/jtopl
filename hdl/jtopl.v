@@ -97,6 +97,7 @@ wire          amen_IV;
 wire  [ 5:0]  tl_IV;
 wire  [ 9:0]  eg_V;
 //
+wire          rhy_en_I;
 wire          rhy_oen_I;
 // Global values
 wire          am_dep, vib_dep;
@@ -190,7 +191,8 @@ jtopl_mmr #(
     .con_I      ( con_I         ),
     //
     .dac_en_I   ( dac_en_I      ),
-    .rhy_oen_I  ( rhy_oen_I     ),
+    .rhy_en_I   ( rhy_en_I      ),
+    .rhy_oen_I  ( rhy_oen_I      ),
     .hh_en_I    ( hh_en_I       ),
     .sd_en_I    ( sd_en_I       ),
     .tc_en_I    ( tc_en_I       ),
@@ -260,6 +262,7 @@ jtopl_lfo #(
 
 jtopl_pg #(
     .OPL_TYPE(OPL_TYPE),
+    .SLOTS(SLOTS),
     .CHANNELS(CHANNELS)
     //.CH_WIDTH(CH_WIDTH),
     //.GROUP_WIDTH(GROUP_WIDTH),
@@ -271,6 +274,7 @@ jtopl_pg #(
     .rst        ( rst           ),
     .clk        ( clk           ),
     .cenop      ( cenop         ),
+    .slot       ( slot          ),
     // Channel frequency
     .fnum_I     ( fnum_I        ),
     .block_I    ( block_I       ),
@@ -285,7 +289,7 @@ jtopl_pg #(
     // phase operation
     .pg_rst_II  ( pg_rst_II     ),
     //
-    .rhy_oen_I  ( rhy_oen_I     ),
+    .rhy_en_I   ( rhy_en_I      ),
     .hh_en_I    ( hh_en_I       ),
     .sd_en_I    ( sd_en_I       ),
     .tc_en_I    ( tc_en_I       ),

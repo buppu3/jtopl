@@ -45,6 +45,7 @@ module jtopl_reg_ch(
     output reg  [FB_WIDTH-1:0]    fb,
     output reg  [CON_WIDTH-1:0]   con,
     output reg  [3:0]             dac_en,
+    output reg                    rhy_en_I,
     output reg                    rhy_oen,    // high for rhythm operators if rhy_en is set
     output reg                    bd0_en,
     output reg                    hh_en,
@@ -530,22 +531,31 @@ generate if(MODULE_COUNT > 1) begin
 
 always @(posedge clk, posedge rst) begin
     if( rst ) begin
-        rhy_csr <= 6'd0;
         rhy_oen <= 0;
     end else if(cen) begin
         if(slot[SLOT_RHY_START - 1]) begin
-            rhy_csr <= { rhy_kon[0][BD], rhy_kon[0][HH], rhy_kon[0][TOM],
-                         rhy_kon[0][BD], rhy_kon[0][SD], rhy_kon[0][TC] };
             rhy_oen <= rhy_en[0];
         end else if(slot[SLOT_RHY_END]) begin
             rhy_oen <= 0;
         end else if(slot[SLOT_RHY_START - 1 + 18]) begin
-            rhy_csr <= { rhy_kon[1][BD], rhy_kon[1][HH], rhy_kon[1][TOM],
-                         rhy_kon[1][BD], rhy_kon[1][SD], rhy_kon[1][TC] };
             rhy_oen <= rhy_en[1] & ~new_en;
         end else if(slot[SLOT_RHY_END + 18]) begin
             rhy_oen <= 0;
-        end else if(rhy_oen) begin
+        end
+    end
+end
+
+always @(posedge clk, posedge rst) begin
+    if( rst ) begin
+        rhy_csr <= 6'd0;
+    end else if(cen) begin
+        if(slot[SLOT_RHY_END]) begin
+            rhy_csr <= { rhy_kon[1][BD], rhy_kon[1][HH], rhy_kon[1][TOM],
+                         rhy_kon[1][BD], rhy_kon[1][SD], rhy_kon[1][TC] };
+        end else if(slot[SLOT_RHY_END + 18]) begin
+            rhy_csr <= { rhy_kon[0][BD], rhy_kon[0][HH], rhy_kon[0][TOM],
+                         rhy_kon[0][BD], rhy_kon[0][SD], rhy_kon[0][TC] };
+        end else begin
             rhy_csr <= { rhy_csr[4:0], rhy_csr[5] };
         end
     end
@@ -574,6 +584,17 @@ always @(posedge clk) begin
         else if(group == 2 && sub == 5) begin
             am_dep_I <= am_dep[new_en ? 0 : 1];
             vib_dep_I <= vib_dep[new_en ? 0 : 1];
+        end
+    end
+end
+
+always @(posedge clk) begin
+    if(cen) begin
+        if(group == 1 && sub == 5) begin
+            rhy_en_I <= rhy_en[0];
+        end
+        else if(group == 4 && sub == 5) begin
+            rhy_en_I <= new_en ? 0 : rhy_en[1];
         end
     end
 end
@@ -612,7 +633,9 @@ end
 always @(posedge clk) begin
     am_dep_I <= am_dep[0];
     vib_dep_I <= vib_dep[0];
+    rhy_en_I <= rhy_en[0];
 end
+
 
 end
 endgenerate

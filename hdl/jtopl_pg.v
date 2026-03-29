@@ -23,6 +23,7 @@ module jtopl_pg(
     input                   rst,
     input                   clk,
     input                   cenop,
+    input       [SLOTS-1:0] slot,
     // Channel frequency
     input       [ 9:0]      fnum_I,
     input       [ 2:0]      block_I,
@@ -37,7 +38,7 @@ module jtopl_pg(
     // phase operation
     input                   pg_rst_II,
 
-    input                   rhy_oen_I,
+    input                   rhy_en_I,
     input                   hh_en_I,
     input                   sd_en_I,
     input                   tc_en_I,
@@ -48,6 +49,7 @@ module jtopl_pg(
 
 parameter OPL_TYPE=1;
 parameter CHANNELS = 9;
+parameter SLOTS=18;
 //parameter CH_WIDTH = 4;
 //parameter GROUP_WIDTH = 2;
 //parameter OP_WIDTH = 1;
@@ -83,8 +85,8 @@ always @(posedge clk, posedge rst) begin
         hh <= 10'd0;
         tc <= 10'd0;
     end else begin
-        if( hh_en_I ) hh <= phase_drop[18:9];
-        if( tc_en_I ) tc <= phase_drop[18:9];
+        if( slot[SLOT_RHY_HH] ) hh <= phase_drop[18:9];
+        if( slot[SLOT_RHY_TC] ) tc <= phase_drop[18:9];
         rm_xor <= (hh[2]^hh[7]) | (hh[3]^tc[5]) | (tc[3]^tc[5]);
     end
 end
@@ -95,10 +97,10 @@ always @(posedge clk, posedge rst) begin
         hh_en_II <= 0;
         sd_en_II <= 0;
         tc_en_II <= 0;
-    end else begin
-        hh_en_II <= rhy_oen_I & hh_en_I;
-        sd_en_II <= rhy_oen_I & sd_en_I;
-        tc_en_II <= rhy_oen_I & tc_en_I;
+    end else if( cenop ) begin
+        hh_en_II <= rhy_en_I & hh_en_I;
+        sd_en_II <= rhy_en_I & sd_en_I;
+        tc_en_II <= rhy_en_I & tc_en_I;
     end
 end
 

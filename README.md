@@ -20,6 +20,11 @@ OPL3 モード時はレジスタの設定に従いサウンド信号を出力し
 
 ADPCM 音源はオリジナルの Y8960 の仕様が固まってから実装します。
 
+## バグ
+
+- dual-OPL2 モード時、リズム音の HH,TC phase 値が OPL2-0 と OPL2-1 で共通になってしまっている。
+- リズム音の TC 波形がおかしい?
+
 ---  
 
 # JTOPL FPGA Clone of Yamaha OPL hardware
