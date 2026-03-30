@@ -33,13 +33,19 @@ module jtopl_pg_rhy (
 
 always @(*) begin
     if( hh_en ) begin
+        phase_op = { rm_xor,  (rm_xor ^ noise) ? 9'h34 : 9'hD0};
+/*
         phase_op = {rm_xor, 9'd0 };
         if( rm_xor ^ noise )
             phase_op = phase_op | 10'hd0;
         else
             phase_op = phase_op | 10'h34;
+*/
     end else if( sd_en ) begin
+        phase_op = { hh[8], ~(hh[8]^noise), 8'd0 };
+/*
         phase_op = { hh[8], hh[8]^noise, 8'd0 };
+*/
     end else if( tc_en ) begin
         phase_op = { rm_xor, 9'h80 };
     end else

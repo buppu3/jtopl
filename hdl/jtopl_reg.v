@@ -78,6 +78,7 @@ module jtopl_reg(
     output           ks_II,    // key scale
     output     [CON_WIDTH-1:0] con_I,
     output     [3:0]           dac_en_I,
+    output                     bd0_en_I,
     output                     hh_en_I,
     output                     sd_en_I,
     output                     tc_en_I,
@@ -106,7 +107,6 @@ localparam CH=CHANNELS;
 
 wire [2:0] subslot;
                
-wire       bd0_en_I;
 wire       update_op_I  = !write && sel_group == group && sel_sub == subslot;
 reg        update_op_II, update_op_III, update_op_IV;
 

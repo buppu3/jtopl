@@ -108,7 +108,7 @@ wire  [OP_WIDTH-1:0]      op;
 wire  [CON_WIDTH-1:0]     con_I;
 wire  [ 3:0]              dac_en_I, dac_en_out;
 wire                      sum_en_out, rhy2x_out;
-wire                      hh_en_I, sd_en_I, tc_en_I;
+wire                      bd0_en_I, hh_en_I, sd_en_I, tc_en_I;
 wire [7:0]                st[MODULE_COUNT-1:0];
 wire                      new_en;
 
@@ -193,6 +193,7 @@ jtopl_mmr #(
     .dac_en_I   ( dac_en_I      ),
     .rhy_en_I   ( rhy_en_I      ),
     .rhy_oen_I  ( rhy_oen_I      ),
+    .bd0_en_I   ( bd0_en_I      ),
     .hh_en_I    ( hh_en_I       ),
     .sd_en_I    ( sd_en_I       ),
     .tc_en_I    ( tc_en_I       ),
@@ -262,6 +263,7 @@ jtopl_lfo #(
 
 jtopl_pg #(
     .OPL_TYPE(OPL_TYPE),
+    .MODULE_COUNT(MODULE_COUNT),
     .SLOTS(SLOTS),
     .CHANNELS(CHANNELS)
     //.CH_WIDTH(CH_WIDTH),
@@ -290,6 +292,7 @@ jtopl_pg #(
     .pg_rst_II  ( pg_rst_II     ),
     //
     .rhy_en_I   ( rhy_en_I      ),
+    .bd0_en_I   ( bd0_en_I      ),
     .hh_en_I    ( hh_en_I       ),
     .sd_en_I    ( sd_en_I       ),
     .tc_en_I    ( tc_en_I       ),

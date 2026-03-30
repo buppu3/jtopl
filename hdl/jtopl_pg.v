@@ -39,6 +39,7 @@ module jtopl_pg(
     input                   pg_rst_II,
 
     input                   rhy_en_I,
+    input                   bd0_en_I,
     input                   hh_en_I,
     input                   sd_en_I,
     input                   tc_en_I,
@@ -50,6 +51,7 @@ module jtopl_pg(
 parameter OPL_TYPE=1;
 parameter CHANNELS = 9;
 parameter SLOTS=18;
+parameter MODULE_COUNT = 1;
 //parameter CH_WIDTH = 4;
 //parameter GROUP_WIDTH = 2;
 //parameter OP_WIDTH = 1;
@@ -71,7 +73,7 @@ reg  [16:0] phinc_II;
 wire [18:0] phase_drop, phase_in;
 wire [ 9:0] phase_II;
 wire        noise;
-reg  [ 9:0] hh, tc;
+reg  [MODULE_COUNT*10-1:0] hh, tc;
 reg         rm_xor;
 
 always @(posedge clk) if(cenop) begin
@@ -79,17 +81,64 @@ always @(posedge clk) if(cenop) begin
     phinc_II        <= phinc_I;
 end
 
+wire tc_bit = (tc[3]^tc[5]) | (hh[2]^hh[7]) | hh[3];
+
+generate if(MODULE_COUNT <= 1) begin
+
 // Rhythm phase
 always @(posedge clk, posedge rst) begin
     if( rst ) begin
         hh <= 10'd0;
         tc <= 10'd0;
-    end else begin
-        if( slot[SLOT_RHY_HH] ) hh <= phase_drop[18:9];
-        if( slot[SLOT_RHY_TC] ) tc <= phase_drop[18:9];
-        rm_xor <= (hh[2]^hh[7]) | (hh[3]^tc[5]) | (tc[3]^tc[5]);
+    end else if( cenop ) begin
+        if( slot[(SLOT_RHY_HH+1)%SLOTS] ) hh <= phase_drop[18:9];
+        if( slot[(SLOT_RHY_TC+1)%SLOTS] ) tc <= phase_drop[18:9];
+        rm_xor <= tc_bit;
     end
 end
+
+end else begin
+
+always @(posedge clk, posedge rst) begin
+    if( rst ) begin
+        hh[$bits(hh)-1:10] <= 0;
+    end else if( cenop ) begin
+        if( bd0_en_I ) hh[$bits(hh)-1:10] <= hh[$bits(hh)-11:0];
+    end
+end
+
+always @(posedge clk, posedge rst) begin
+    if( rst ) begin
+        hh[9:0] <= 0;
+    end else if( cenop ) begin
+        if( hh_en_II )      hh[9:0] <= phase_drop[18:9];
+        else if( bd0_en_I ) hh[9:0] <= hh[$bits(hh)-1:$bits(hh)-10];
+    end
+end
+
+always @(posedge clk, posedge rst) begin
+    if( rst ) begin
+        tc[$bits(tc)-1:10] <= 0;
+    end else if( cenop ) begin
+        if( bd0_en_I ) tc[$bits(tc)-1:10] <= tc[$bits(tc)-11:0];
+    end
+end
+
+always @(posedge clk, posedge rst) begin
+    if( rst ) begin
+        tc[9:0] <= 0;
+    end else if( cenop ) begin
+        if( tc_en_II )      tc[9:0] <= phase_drop[18:9];
+        else if( bd0_en_I ) tc[9:0] <= tc[$bits(tc)-1:$bits(tc)-10];
+    end
+end
+
+always @(*) begin
+    rm_xor = tc_bit;
+end
+
+end
+endgenerate
 
 reg hh_en_II, sd_en_II, tc_en_II;
 always @(posedge clk, posedge rst) begin
@@ -134,7 +183,7 @@ jtopl_pg_comb u_comb(
     .tc_en      ( tc_en_II      ),
     .rm_xor     ( rm_xor        ),
     .noise      ( noise         ),
-    .hh         ( hh            ),
+    .hh         ( hh[9:0]       ),
 
     .phase_out  ( phase_in      ),
     .phase_op   ( phase_II      )
