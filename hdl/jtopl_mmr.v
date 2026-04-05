@@ -89,7 +89,7 @@ parameter OP_WIDTH = 1;
 parameter CON_WIDTH = 1;
 parameter FB_WIDTH = 3;
 parameter WAVESEL_WIDTH = 2;
-parameter CLKDIV=2;
+parameter CLKDIV=1<<2;
 parameter OPL2_1_DAC_OUT = 4'b0011;
 parameter OPL2_2_DAC_OUT = 4'b0011;
 

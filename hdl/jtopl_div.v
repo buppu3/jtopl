@@ -27,9 +27,9 @@ module jtopl_div(
 );
 
 parameter OPL_TYPE=1;
-parameter CLKDIV=2;
+parameter CLKDIV=1<<2;
 
-localparam W = CLKDIV; // OPL_TYPE==2 ? 1 : 2;
+localparam W = $clog2(CLKDIV);
 
 reg  [W-1:0] cnt;
 
@@ -37,9 +37,23 @@ reg  [W-1:0] cnt;
 initial cnt={W{1'b0}};
 `endif
 
-always @(posedge clk) if(cen) begin
-    cnt <= cnt+1'd1;
-end
+generate
+    if((1<<W) == CLKDIV) begin
+        always @(posedge clk) if(cen) begin
+            cnt <= cnt+1'd1;
+        end
+    end
+    else begin
+        always @(posedge clk) if(cen) begin
+            if(cnt == (CLKDIV-1)) begin
+                cnt <= 0;
+            end
+            else begin
+                cnt <= cnt+1'd1;
+            end
+        end
+    end
+endgenerate
 
 always @(posedge clk) begin
     cenop <= cen && (&cnt);

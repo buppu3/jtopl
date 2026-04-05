@@ -45,7 +45,7 @@ parameter FB_WIDTH = 3;
 parameter WAVESEL_WIDTH = 2;
 parameter ACCW = 18;    // 13bit * 18op
 parameter OUTW = 16;
-parameter CLKDIV=2;
+parameter CLKDIV=1<<2;
 parameter DAC_OUT = 4'b0011;
 
     `define JTOPL2

@@ -19,10 +19,10 @@
 
     */
 
-module jtopl8960(
+module jtopl3l(
     input                  rst,        // rst should be at least 6 clk&cen cycles long
     input                  clk,        // CPU clock
-    input                  cen,        // 14.31818MHz
+    input                  cen,        // 33.8688MHz
     input           [ 7:0] din,
     input           [ 1:0] addr,
     input                  cs_n,
@@ -30,15 +30,12 @@ module jtopl8960(
     output          [ 7:0] dout,
     output                 irq_n,
     // combined output
-    output  signed  [OUTW-1:0] snd_a,
-    output  signed  [OUTW-1:0] snd_b,
-    output  signed  [OUTW-1:0] snd_c,
-    output  signed  [OUTW-1:0] snd_d,
+    output  signed  [OUTW-1:0] snd_l,
+    output  signed  [OUTW-1:0] snd_r,
     output                 sample
 );
 
 parameter OPL_TYPE=3;
-parameter MODULE_COUNT = 2;
 parameter SLOTS = 36;
 parameter CHANNELS = 18;
 parameter CH_WIDTH = 5;
@@ -47,18 +44,17 @@ parameter OP_WIDTH = 2;
 parameter CON_WIDTH = 3;
 parameter FB_WIDTH = 3;
 parameter WAVESEL_WIDTH = 3;
-parameter CLKDIV=1<<3;
+parameter CLKDIV=19;
 parameter MONO = 0;
 parameter ACCW = 19;    // 13bit * 36op
 parameter OUTW = 16;
 parameter STATUS_BITS = 5'd6;
-parameter OPL2_1_DAC_OUT = 4'b0001;
-parameter OPL2_2_DAC_OUT = 4'b0010;
+parameter OPL2_1_DAC_OUT = 4'b0011;
+parameter OPL2_2_DAC_OUT = 4'b0011;
 
     `define JTOPL2
     jtopl #(
         .OPL_TYPE(OPL_TYPE),
-        .MODULE_COUNT(MODULE_COUNT),
         .SLOTS(SLOTS),
         .CHANNELS(CHANNELS),
         .CH_WIDTH(CH_WIDTH),
@@ -84,10 +80,10 @@ parameter OPL2_2_DAC_OUT = 4'b0010;
         .wr_n   ( wr_n      ),
         .dout   ( dout      ),
         .irq_n  ( irq_n     ),
-        .snd_a  ( snd_a     ),
-        .snd_b  ( snd_b     ),
-        .snd_c  ( snd_c     ),
-        .snd_d  ( snd_d     ),
+        .snd_a  ( snd_l     ),
+        .snd_b  ( snd_r     ),
+        .snd_c  (           ),
+        .snd_d  (           ),
         .sample ( sample    )
     );
 
