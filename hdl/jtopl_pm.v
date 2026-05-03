@@ -18,8 +18,6 @@
     Date: 21-6-2020
     */
 
-// Based on Nuked's work on OPLL and OPL3
-
 module jtopl_pm (
     input       [ 2:0] vib_cnt,
     input       [ 9:0] fnum,
@@ -31,17 +29,23 @@ module jtopl_pm (
 reg [2:0] range;
 
 always @(*) begin
-    if( vib_cnt[1:0]==2'b00 )
+    if( vib_cnt[1:0] == 2'b10 )
         range = 3'd0;
     else begin
-        range = fnum[9:7]>>vib_cnt[0];
-        if(!vib_dep) range = range>>1;
+        case ({vib_dep, vib_cnt[0]})
+        2'b00: range = {1'd0, fnum[9:8]};
+        2'b01: range = {2'd0, fnum[9:9]};
+        2'b10: range = {      fnum[9:7]};
+        2'b11: range = {1'd0, fnum[9:8]};
+        endcase
     end
-    if( vib_cnt[2] )
+
+    if(!viben)
+        pm_offset = 4'd0;
+    else if( vib_cnt[2] ^ vib_cnt[1] )
         pm_offset = ~{1'b0, range } + 4'd1;
     else
         pm_offset = {1'b0, range };
-    if(!viben) pm_offset = 4'd0;
 end
 
 endmodule
