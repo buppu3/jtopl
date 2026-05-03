@@ -49,7 +49,7 @@ always @(*) begin
 end
 
 always @(*) begin
-    am_final = amsen ? ( ams ? {lfo_mod, 2'b0} : {2'b0, lfo_mod} ) : 7'd0;
+    am_final = amsen ? ( ams ? {2'b0, lfo_mod} : {4'b0, lfo_mod[4:2]} ) : 7'd0;
     sum_eg_tl = {  2'b0, tl,     3'd0 } + 
                 {  1'b0, ksl_dB, 1'd0 } +
                 {  1'b0, eg_pure_in}; // leading zeros needed to compute correctly
